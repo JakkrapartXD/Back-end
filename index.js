@@ -143,6 +143,7 @@ server.auth.default('simple');
       cors: {
         origin: ["*"],
         additionalHeaders: ["cache-control", "x-requested-width"],
+        credentials: true
       },
     },
     handler: async function (request, reply) {
