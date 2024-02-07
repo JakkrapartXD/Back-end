@@ -1,4 +1,5 @@
 const hapi = require("@hapi/hapi");
+const AuthBearer = require('hapi-auth-bearer-token');
 const Inert = require("@hapi/inert");
 const env = require("./env.js");
 const Movies = require("./respository/movie.js");
@@ -33,6 +34,24 @@ const init = async () => {
   //---------
 
   await server.register(Inert);
+  await server.register(AuthBearer);
+
+  server.auth.strategy('simple', 'bearer-access-token', {
+    allowQueryToken: true,              // optional, false by default
+    validate: async (request, token, h) => {
+
+        // here is where you validate your token
+        // comparing with token from your database for example
+        const isValid = token === '1234567890'
+
+        const credentials = { token };
+        const artifacts = { test: 'info' };
+
+        return { isValid, credentials, artifacts };
+    }
+});
+
+server.auth.default('simple');
 
   const handleFileUpload = (file) => {
     return new Promise((resolve, reject) => {
@@ -57,6 +76,13 @@ const init = async () => {
   server.route({
     method: "GET",
     path: "/",
+    config: {
+            cors: {
+                origin: ['*'],
+                additionalHeaders: ["cache-control", "x-requested-width"],
+                credentials: true
+            }
+        },
     handler: () => {
       return "<h3> Welcome to API Back-end Ver. 1.0.0</h3>";
     },
@@ -69,6 +95,7 @@ const init = async () => {
       cors: {
         origin: ["*"],
         additionalHeaders: ["cache-control", "x-requested-width"],
+        credentials: true
       },
     },
     handler: (request, h) => {
@@ -85,6 +112,7 @@ const init = async () => {
       cors: {
         origin: ["*"],
         additionalHeaders: ["cache-control", "x-requested-width"],
+        credentials: true
       },
     },
     handler: async function (request, reply) {
